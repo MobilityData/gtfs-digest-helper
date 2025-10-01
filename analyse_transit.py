@@ -274,14 +274,23 @@ st.sidebar.header("Filters for Search")
 users = sorted(issues_df['username'].dropna().unique()) if 'username' in issues_df.columns else []
 selected_users = st.sidebar.multiselect("Filter by user", users)
 
-min_date = min(issues_df['created_at'].min(), pulls_df['created_at'].min())
-max_date = max(issues_df['created_at'].max(), pulls_df['created_at'].max())
+min_date = min(issues_df['created_at'].min(), pulls_df['created_at'].min()).date()
+# max_date = la vraie date la plus récente dans toutes les tables, y compris commentaires
+max_date = max(
+    issues_df['created_at'].max(),
+    pulls_df['created_at'].max(),
+    issues_comments_df['created_at'].max(),
+    pr_comments_df['created_at'].max()
+).date()
+
 selected_dates = st.sidebar.date_input(
     "Filter by creation date",
     value=(min_date, max_date),
     min_value=min_date,
     max_value=max_date
 )
+
+
 
 search_term = st.sidebar.text_input("Search keyword in title or comments")
 
