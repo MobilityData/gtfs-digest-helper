@@ -313,7 +313,7 @@
     "id":3441869665,
     "node_id":"PR_kwDOAlVrjc6p5Ezv",
     "number":578,
-    "title":"Add network sets and relax constraint on networks in fare_leg_join_rules.txt",
+    "title":"[GTFS Fares v2] Add network sets and relax constraint on networks in fare_leg_join_rules.txt",
     "user":{
       "login":"skalexch",
       "id":58088899,
@@ -382,7 +382,7 @@
     "milestone":null,
     "comments":0,
     "created_at":"2025-09-22T16:53:20Z",
-    "updated_at":"2025-09-22T17:08:18Z",
+    "updated_at":"2025-10-01T13:38:32Z",
     "closed_at":null,
     "author_association":"COLLABORATOR",
     "type":null,

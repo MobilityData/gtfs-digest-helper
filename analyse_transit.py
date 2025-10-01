@@ -8,15 +8,17 @@ from datetime import timezone
 from collections import Counter
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
+from github import Github
+
 
 
 # --- Step 1: Data Loading ---
 BASE_PATH = os.path.join('data', 'cleaned-data')
 FILES_TO_LOAD = {
-    "issues": "issues_fixed.json",
-    "issues_comments": "issues_comments_fixed.json",
-    "pulls": "pulls_fixed.json",
-    "pr_comments": "pr_comments_fixed.json",
+    "issues": "issues.json",
+    "issues_comments": "issues_comments.json",
+    "pulls": "pulls.json",
+    "pr_comments": "pr_comments.json",
 }
 
 @st.cache_data
@@ -75,7 +77,7 @@ with col2:
     month = st.selectbox("Month", list(range(1, 13)), index=datetime.date.today().month - 1)
 
 # --- Bouton Generate Digest ---
-if st.button(f"✨ Generate {month}-{year} Digest"):
+if st.button(f"✨Generate {month}-{year} Digest"):
     with st.spinner("Fetching data from GitHub..."):
         issues, pulls, issue_comments, pr_comments = generate_monthly_digest(
             st.secrets["github"]["token"],
@@ -225,21 +227,42 @@ else:
 # -------------------------------
 # 2. State of PR (active PRs)
 # -------------------------------
-st.header("🚨 State of Active PRs (All-Time)")
-all_pulls = pulls_df.to_dict('records')
+@st.cache_data(ttl=3600)  #Cache for 1 hour
+def fetch_live_prs():
+    token = st.secrets["github"]["token"]
+    gh = Github(token)
+    repo = gh.get_repo("google/transit")
+    pulls = repo.get_pulls(state="open")
+    prs = []
+    for pr in pulls:
+        prs.append({
+            "number": pr.number,
+            "title": pr.title,
+            "html_url": pr.html_url,
+            "labels": [ {"name": lbl.name} for lbl in pr.get_labels() ]
+        })
+    return prs
+
+
+st.header("🚨 State of Active PRs (Live)")
+live_prs = fetch_live_prs()
 
 label_to_prs = {
-    "Discussion Period": [p for p in all_pulls if any(lbl.get('name') == 'Discussion Period' for lbl in p.get('labels', [])) and p.get('state')=='open'],
-    "Vote to Adopt": [p for p in all_pulls if any(lbl.get('name') == 'Vote to Adopt' for lbl in p.get('labels', [])) and p.get('state')=='open'],
-    "Vote to Test": [p for p in all_pulls if any(lbl.get('name') == 'Vote to Test' for lbl in p.get('labels', [])) and p.get('state')=='open']
+    "Discussion Period": [p for p in live_prs if any(l["name"] == "Discussion Period" for l in p["labels"])],
+    "Vote to Adopt": [p for p in live_prs if any(l["name"] == "Vote to Adopt" for l in p["labels"])],
+    "Vote to Test": [p for p in live_prs if any(l["name"] == "Vote to Test" for l in p["labels"])]
 }
 
+if not any(label_to_prs.values()):
+    st.info("No active PRs found at the moment.")
+else:
+    for label, prs in label_to_prs.items():
+        if prs:
+            st.markdown(f"**{label}**")
+            for p in prs:
+                st.markdown(f"- [{p['title']}]({p['html_url']})")
 
-for label, prs in label_to_prs.items():
-    if prs:
-        st.markdown(f"**{label}**")
-        for p in prs:
-            st.markdown(f"- [{p.get('title')}]({p.get('html_url')}) ")
+
 
 # -------------------------------
 # 3. Searchable Stats (Issues/PRs + Comments)
