@@ -1,4 +1,4 @@
-# transitcom
+# gtfs-digest-helper
 
 ## Load data every end of month
 
