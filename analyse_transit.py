@@ -11,9 +11,8 @@ import matplotlib.pyplot as plt
 from github import Github
 
 
-
 # --- Step 1: Data Loading ---
-BASE_PATH = os.path.join('data', 'cleaned-data')
+BASE_PATH = "github_export"  
 FILES_TO_LOAD = {
     "issues": "issues.json",
     "issues_comments": "issues_comments.json",
@@ -35,6 +34,7 @@ def load_all_data():
             st.error(f"Error loading {file_name}: {e}")
             return None
     return dataframes
+
 
 all_data = load_all_data()
 if all_data and all(k in all_data for k in ["issues", "issues_comments", "pr_comments", "pulls"]):
