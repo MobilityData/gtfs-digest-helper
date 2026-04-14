@@ -8,11 +8,15 @@ REPO = "transit"
 OUTDIR = "./github_export"
 TOKEN = os.getenv("GITHUB_TOKEN")
 
+if not TOKEN:
+    raise EnvironmentError("GITHUB_TOKEN environment variable is not set.")
+
 os.makedirs(OUTDIR, exist_ok=True)
 
 HEADERS = {
     "Accept": "application/vnd.github+json",
-    "Authorization": f"token {TOKEN}" if TOKEN else None
+    "X-GitHub-Api-Version": "2022-11-28",  # pin the API version too
+    "Authorization": f"Bearer {TOKEN}" if TOKEN else ""
 }
 
 def get_latest_timestamp(file_path):
